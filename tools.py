@@ -62,6 +62,7 @@ def create_jira_ticket(
 
         try:
             client = JIRA(server=jira_server, basic_auth=(jira_user, jira_api_token))
+            client.myself()
             issue = client.create_issue(
                 project=jira_project_key,
                 summary=summary,
@@ -71,6 +72,12 @@ def create_jira_ticket(
                 labels=labels,
             )
         except JIRAError as exc:
+            if exc.status_code == 401:
+                raise RuntimeError(
+                    "Failed to create Jira ticket: Jira rejected JIRA_USER/JIRA_API_TOKEN. "
+                    "Use your Atlassian account email as JIRA_USER and a Jira API token "
+                    "as JIRA_API_TOKEN."
+                ) from exc
             if exc.status_code == 404 and "No project could be found" in str(exc):
                 raise RuntimeError(
                     "Failed to create Jira ticket: JIRA_PROJECT_KEY="
