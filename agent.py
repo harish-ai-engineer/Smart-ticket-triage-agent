@@ -22,7 +22,7 @@ def run_agent(tickets: list[dict]) -> list[dict]:
         "priority": "",
         "order_id": "",
         "order_data": {},
-        "jira_ticket_id": "",
+        "issue_id": "",
         "slack_notified": False,
         "customer_reply": "",
         "next_action": "",
@@ -46,7 +46,7 @@ def run_agent(tickets: list[dict]) -> list[dict]:
     for entry in processed:
         print(
             f"[Router] {entry['ticket_id']} | intent={entry['intent']} "
-            f"priority={entry['priority']} jira={entry['jira_ticket_id']} "
+            f"priority={entry['priority']} issue={entry['issue_id']} "
             f"action={entry['next_action']}"
         )
     print(f"[Router] Total tickets processed: {len(processed)}")

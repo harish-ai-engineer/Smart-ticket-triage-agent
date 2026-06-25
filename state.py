@@ -12,7 +12,7 @@ class TicketState(TypedDict):
     priority: str
     order_id: str
     order_data: dict
-    jira_ticket_id: str
+    issue_id: str
     slack_notified: bool
     customer_reply: str
     next_action: str

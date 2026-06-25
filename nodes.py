@@ -5,9 +5,9 @@ import os
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from config import get_classifier_llm, get_langfuse_handler, get_llm
+from config import get_classifier_llm, get_llm
 from state import TicketState
-from tools import create_jira_ticket, fetch_order_data, notify_slack
+from tools import create_support_issue, fetch_order_data, notify_slack
 
 ESCALATION_TOTAL_THRESHOLD = 15000
 
@@ -42,7 +42,6 @@ def llm_classifier(state: TicketState) -> dict:
     """Call the LLM to classify intent, priority, and extract the order ID."""
     ticket = state["current_ticket"]
     llm = get_classifier_llm()
-    handler = get_langfuse_handler()
 
     messages = [
         SystemMessage(content=CLASSIFIER_SYSTEM_PROMPT),
@@ -56,7 +55,7 @@ def llm_classifier(state: TicketState) -> dict:
         ),
     ]
 
-    response = llm.invoke(messages, config={"callbacks": [handler]})
+    response = llm.invoke(messages)
 
     try:
         parsed = json.loads(response.content)
@@ -71,7 +70,7 @@ def llm_classifier(state: TicketState) -> dict:
 
 
 def tools_node(state: TicketState) -> dict:
-    """Run order lookup, Jira ticket creation, and Slack notification in sequence."""
+    """Run order lookup, GitHub issue creation, and Slack notification in sequence."""
     ticket = state["current_ticket"]
     order_id = state["order_id"]
     intent = state["intent"]
@@ -87,7 +86,7 @@ def tools_node(state: TicketState) -> dict:
         f"Message: {ticket['message']}\n"
         f"Order data: {order_data}"
     )
-    jira_result = create_jira_ticket.invoke(
+    issue_result = create_support_issue.invoke(
         {
             "summary": summary,
             "description": description,
@@ -96,25 +95,25 @@ def tools_node(state: TicketState) -> dict:
             "intent": intent,
         }
     )
-    jira_ticket_id = jira_result["jira_ticket_id"]
-    print(f"[Tool] create_jira_ticket -> {jira_ticket_id}")
+    issue_id = issue_result["issue_id"]
+    print(f"[Tool] create_support_issue -> {issue_id}")
 
     channel_env = "SLACK_URGENT_CHANNEL" if priority == "urgent" else "SLACK_GENERAL_CHANNEL"
     default_channel = "support-urgent" if priority == "urgent" else "support-general"
     channel = os.getenv(channel_env, default_channel)
-    slack_message = f"New ticket {jira_ticket_id} ({priority}) for {ticket['ticket_id']}: {summary}"
+    slack_message = f"New issue {issue_id} ({priority}) for {ticket['ticket_id']}: {summary}"
     slack_result = notify_slack.invoke(
         {
             "channel": channel,
             "message": slack_message,
-            "jira_ticket_id": jira_ticket_id,
+            "issue_id": issue_id,
             "priority": priority,
         }
     )
 
     return {
         "order_data": order_data,
-        "jira_ticket_id": jira_ticket_id,
+        "issue_id": issue_id,
         "slack_notified": slack_result["sent"],
     }
 
@@ -123,7 +122,6 @@ def llm_responder(state: TicketState) -> dict:
     """Call the LLM to draft a customer reply and decide the routing action."""
     ticket = state["current_ticket"]
     llm = get_llm()
-    handler = get_langfuse_handler()
 
     messages = [
         SystemMessage(content=RESPONDER_SYSTEM_PROMPT),
@@ -135,12 +133,12 @@ def llm_responder(state: TicketState) -> dict:
                 f"intent: {state['intent']}\n"
                 f"priority: {state['priority']}\n"
                 f"order_data: {state['order_data']}\n"
-                f"jira_ticket_id: {state['jira_ticket_id']}"
+                f"issue_id: {state['issue_id']}"
             )
         ),
     ]
 
-    response = llm.invoke(messages, config={"callbacks": [handler]})
+    response = llm.invoke(messages)
 
     try:
         parsed = json.loads(response.content)
@@ -168,7 +166,7 @@ def llm_responder(state: TicketState) -> dict:
         "ticket_id": ticket["ticket_id"],
         "intent": state["intent"],
         "priority": state["priority"],
-        "jira_ticket_id": state["jira_ticket_id"],
+        "issue_id": state["issue_id"],
         "reply": reply,
         "next_action": next_action,
     }
@@ -188,7 +186,7 @@ def human_escalation(state: TicketState) -> dict:
     print(f"[Escalation] Customer: {ticket['customer_name']}")
     print(f"[Escalation] Intent: {state['intent']} | Priority: {state['priority']}")
     print(f"[Escalation] Order total: {state['order_data'].get('total', 0)}")
-    print(f"[Escalation] Jira: {state['jira_ticket_id']}")
+    print(f"[Escalation] Issue: {state['issue_id']}")
     print(f"[Escalation] Draft reply: {state['customer_reply']}")
     print("[Escalation] ==========================================")
     return {"next_action": "done"}

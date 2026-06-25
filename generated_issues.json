@@ -1,0 +1,123 @@
+[
+  {
+    "issue_id": "LOCAL-0001",
+    "issue_number": 1,
+    "summary": "[URGENT] missing_item - Missing item in my order",
+    "description": "Ticket: TKT-001\nCustomer: Priya M.\nMessage: Hi, I received my package today but one item (a pair of earrings) is missing from the box. Order is ORD-84712. Please help urgently, this was a gift.\nOrder data: {'order_id': 'ORD-84712', 'items': ['Silver Earrings - Floral'], 'total': 4200, 'status': 'delivered', 'delivery_date': '2026-06-20'}",
+    "priority": "urgent",
+    "order_id": "ORD-84712",
+    "intent": "missing_item",
+    "created_at": "2026-06-25T17:24:43.051310+00:00",
+    "source": "local_fallback"
+  },
+  {
+    "issue_id": "LOCAL-0002",
+    "issue_number": 2,
+    "summary": "[URGENT] missing_item - Missing item in my order",
+    "description": "Ticket: TKT-001\nCustomer: Priya M.\nMessage: Hi, I received my package today but one item (a pair of earrings) is missing from the box. Order is ORD-84712. Please help urgently, this was a gift.\nOrder data: {'order_id': 'ORD-84712', 'items': ['Silver Earrings - Floral'], 'total': 4200, 'status': 'delivered', 'delivery_date': '2026-06-20'}",
+    "priority": "urgent",
+    "order_id": "ORD-84712",
+    "intent": "missing_item",
+    "created_at": "2026-06-25T17:25:12.359452+00:00",
+    "source": "local_fallback"
+  },
+  {
+    "issue_id": "LOCAL-0003",
+    "issue_number": 3,
+    "summary": "[MEDIUM] refund - Refund request for Rs 28990 order",
+    "description": "Ticket: TKT-002\nCustomer: Ravi K.\nMessage: I want to return order ORD-61033 and get a full refund of Rs 28990. The necklace I received doesn't match what was shown on the site.\nOrder data: {'order_id': 'ORD-61033', 'items': ['Gold Plated Necklace - Royal'], 'total': 28990, 'status': 'delivered', 'delivery_date': '2026-06-18'}",
+    "priority": "medium",
+    "order_id": "ORD-61033",
+    "intent": "refund",
+    "created_at": "2026-06-25T17:25:17.189406+00:00",
+    "source": "local_fallback"
+  },
+  {
+    "issue_id": "LOCAL-0004",
+    "issue_number": 4,
+    "summary": "[URGENT] missing_item - Missing item in my order",
+    "description": "Ticket: TKT-001\nCustomer: Priya M.\nMessage: Hi, I received my package today but one item (a pair of earrings) is missing from the box. Order is ORD-84712. Please help urgently, this was a gift.\nOrder data: {'order_id': 'ORD-84712', 'items': ['Silver Earrings - Floral'], 'total': 4200, 'status': 'delivered', 'delivery_date': '2026-06-20'}",
+    "priority": "urgent",
+    "order_id": "ORD-84712",
+    "intent": "missing_item",
+    "created_at": "2026-06-25T17:31:56.861934+00:00",
+    "source": "local_fallback"
+  },
+  {
+    "issue_id": "LOCAL-0005",
+    "issue_number": 5,
+    "summary": "[MEDIUM] refund - Refund request for Rs 28990 order",
+    "description": "Ticket: TKT-002\nCustomer: Ravi K.\nMessage: I want to return order ORD-61033 and get a full refund of Rs 28990. The necklace I received doesn't match what was shown on the site.\nOrder data: {'order_id': 'ORD-61033', 'items': ['Gold Plated Necklace - Royal'], 'total': 28990, 'status': 'delivered', 'delivery_date': '2026-06-18'}",
+    "priority": "medium",
+    "order_id": "ORD-61033",
+    "intent": "refund",
+    "created_at": "2026-06-25T17:32:00.907753+00:00",
+    "source": "local_fallback"
+  },
+  {
+    "issue_id": "LOCAL-0006",
+    "issue_number": 6,
+    "summary": "[URGENT] missing_item - Missing item in my order",
+    "description": "Ticket: TKT-001\nCustomer: Priya M.\nMessage: Hi, I received my package today but one item (a pair of earrings) is missing from the box. Order is ORD-84712. Please help urgently, this was a gift.\nOrder data: {'order_id': 'ORD-84712', 'items': ['Silver Earrings - Floral'], 'total': 4200, 'status': 'delivered', 'delivery_date': '2026-06-20'}",
+    "priority": "urgent",
+    "order_id": "ORD-84712",
+    "intent": "missing_item",
+    "created_at": "2026-06-25T17:33:39.928875+00:00",
+    "source": "local_fallback"
+  },
+  {
+    "issue_id": "LOCAL-0007",
+    "issue_number": 7,
+    "summary": "[MEDIUM] refund - Refund request for Rs 28990 order",
+    "description": "Ticket: TKT-002\nCustomer: Ravi K.\nMessage: I want to return order ORD-61033 and get a full refund of Rs 28990. The necklace I received doesn't match what was shown on the site.\nOrder data: {'order_id': 'ORD-61033', 'items': ['Gold Plated Necklace - Royal'], 'total': 28990, 'status': 'delivered', 'delivery_date': '2026-06-18'}",
+    "priority": "medium",
+    "order_id": "ORD-61033",
+    "intent": "refund",
+    "created_at": "2026-06-25T17:33:43.609766+00:00",
+    "source": "local_fallback"
+  },
+  {
+    "issue_id": "LOCAL-0008",
+    "issue_number": 8,
+    "summary": "[URGENT] missing_item - Missing item in my order",
+    "description": "Ticket: TKT-001\nCustomer: Priya M.\nMessage: Hi, I received my package today but one item (a pair of earrings) is missing from the box. Order is ORD-84712. Please help urgently, this was a gift.\nOrder data: {'order_id': 'ORD-84712', 'items': ['Silver Earrings - Floral'], 'total': 4200, 'status': 'delivered', 'delivery_date': '2026-06-20'}",
+    "priority": "urgent",
+    "order_id": "ORD-84712",
+    "intent": "missing_item",
+    "created_at": "2026-06-25T17:39:41.211448+00:00",
+    "source": "local_fallback"
+  },
+  {
+    "issue_id": "LOCAL-0009",
+    "issue_number": 9,
+    "summary": "[MEDIUM] refund - Refund request for Rs 28990 order",
+    "description": "Ticket: TKT-002\nCustomer: Ravi K.\nMessage: I want to return order ORD-61033 and get a full refund of Rs 28990. The necklace I received doesn't match what was shown on the site.\nOrder data: {'order_id': 'ORD-61033', 'items': ['Gold Plated Necklace - Royal'], 'total': 28990, 'status': 'delivered', 'delivery_date': '2026-06-18'}",
+    "priority": "medium",
+    "order_id": "ORD-61033",
+    "intent": "refund",
+    "created_at": "2026-06-25T17:39:47.356781+00:00",
+    "source": "local_fallback"
+  },
+  {
+    "issue_id": "LOCAL-0010",
+    "issue_number": 10,
+    "summary": "[URGENT] missing_item - Missing item in my order",
+    "description": "Ticket: TKT-001\nCustomer: Priya M.\nMessage: Hi, I received my package today but one item (a pair of earrings) is missing from the box. Order is ORD-84712. Please help urgently, this was a gift.\nOrder data: {'order_id': 'ORD-84712', 'items': ['Silver Earrings - Floral'], 'total': 4200, 'status': 'delivered', 'delivery_date': '2026-06-20'}",
+    "priority": "urgent",
+    "order_id": "ORD-84712",
+    "intent": "missing_item",
+    "created_at": "2026-06-25T17:43:50.902803+00:00",
+    "source": "local_fallback"
+  },
+  {
+    "issue_id": "LOCAL-0011",
+    "issue_number": 11,
+    "summary": "[MEDIUM] refund - Refund request for Rs 28990 order",
+    "description": "Ticket: TKT-002\nCustomer: Ravi K.\nMessage: I want to return order ORD-61033 and get a full refund of Rs 28990. The necklace I received doesn't match what was shown on the site.\nOrder data: {'order_id': 'ORD-61033', 'items': ['Gold Plated Necklace - Royal'], 'total': 28990, 'status': 'delivered', 'delivery_date': '2026-06-18'}",
+    "priority": "medium",
+    "order_id": "ORD-61033",
+    "intent": "refund",
+    "created_at": "2026-06-25T17:43:55.191833+00:00",
+    "source": "local_fallback"
+  }
+]

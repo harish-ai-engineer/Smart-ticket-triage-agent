@@ -1,7 +1,7 @@
 # Ticket Triage Agent
 
 A LangGraph agent that processes a queue of e-commerce support tickets, classifying each
-one's intent and priority, looking up the related order, filing a Jira ticket, alerting
+one's intent and priority, looking up the related order, filing a GitHub issue, alerting
 the right Slack channel, and drafting a customer reply — escalating high-value refund or
 damage claims to a human before closing them out. Every LLM call and tool invocation is
 traced through Langfuse-compatible callbacks (AgentGuard), giving full visibility into
@@ -15,8 +15,9 @@ cp .env.example .env
 ```
 
 Fill in `.env` with your `OPENAI_API_KEY` and Langfuse/AgentGuard keys
-(`LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST`). Jira and Slack keys are
-only required once you swap the mock tools for the real APIs (see below).
+(`LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST`). Set `GITHUB_TOKEN`
+and `GITHUB_REPOSITORY` when you want the agent to create real GitHub issues. Slack
+keys are only required when you want real Slack alerts.
 
 ## Run
 
@@ -48,28 +49,24 @@ START ──▶ fetch_next_ticket ──▶ llm_classifier ──▶ tools_node 
 
 - **fetch_next_ticket** — pops the next ticket off the queue.
 - **llm_classifier** (LLM call #1) — classifies `intent`, `priority`, and extracts `order_id`.
-- **tools_node** — looks up the order, files a Jira ticket, and notifies Slack.
+- **tools_node** — looks up the order, files a GitHub issue, and notifies Slack.
 - **llm_responder** (LLM call #2) — drafts a customer reply and decides `next_action`.
 - **human_escalation** — pauses (`interrupt_before`) for refund/damaged tickets over
   ₹15,000 before closing.
 
-## Swapping mock tools for real APIs
+## GitHub Issues
 
-**Jira** (`tools.py::create_jira_ticket`):
+`tools.py::create_support_issue` creates a GitHub issue when these variables are set:
 
-```python
-from jira import JIRA
-client = JIRA(server=JIRA_SERVER, basic_auth=(JIRA_USER, JIRA_API_TOKEN))
-issue = client.create_issue(
-    project=JIRA_PROJECT_KEY,
-    summary=summary,
-    description=description,
-    issuetype={"name": "Task"},
-    priority={"name": priority.capitalize()},
-    labels=[intent, order_id],
-)
-return {"jira_ticket_id": issue.key, "summary": summary}
+```env
+GITHUB_TOKEN=github_pat_or_personal_access_token
+GITHUB_REPOSITORY=owner/repo
+GITHUB_API_BASE=https://api.github.com
 ```
+
+Use a fine-grained GitHub token with Issues read/write access for the target repository.
+
+## Swapping mock tools for real APIs
 
 **Slack** (`tools.py::notify_slack`):
 
@@ -114,7 +111,5 @@ about to run, so a UI can poll this to know when a ticket needs attention.
 
 ## AgentGuard / Langfuse observability
 
-Every LLM call passes a `CallbackHandler` from `langfuse.callback` in its `callbacks`
-config, so each classification and response generation shows up in the AgentGuard/Langfuse
-UI as a traced generation with prompt, completion, token usage, latency, and cost — grouped
-by `thread_id` so you can see the full multi-ticket session for a single run.
+The graph passes one `CallbackHandler` from `langfuse.callback`, with trace name
+`ticket triage agent`, so a run is grouped into one AgentGuard/Langfuse trace.
