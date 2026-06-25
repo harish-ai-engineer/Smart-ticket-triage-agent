@@ -1,8 +1,12 @@
 """Tool definitions used by the triage agent: order lookup, Jira ticketing, Slack alerts."""
 
+import os
 import random
 
 from langchain_core.tools import tool
+from jira import JIRA
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
 
 _MOCK_ORDERS: dict[str, dict] = {
     "ORD-84712": {
@@ -41,18 +45,43 @@ def create_jira_ticket(
     summary: str, description: str, priority: str, order_id: str, intent: str
 ) -> dict:
     """Create a Jira support ticket and return its generated ticket ID."""
-    # MOCK: replace this block with a real Jira SDK call, e.g.:
-    #   from jira import JIRA
-    #   client = JIRA(server=JIRA_SERVER, basic_auth=(JIRA_USER, JIRA_API_TOKEN))
-    #   issue = client.create_issue(
-    #       project=JIRA_PROJECT_KEY,
-    #       summary=summary,
-    #       description=description,
-    #       issuetype={"name": "Task"},
-    #       priority={"name": priority.capitalize()},
-    #       labels=[intent, order_id],
-    #   )
-    #   return {"jira_ticket_id": issue.key, "summary": summary}
+    jira_server = os.getenv("JIRA_SERVER")
+    jira_user = os.getenv("JIRA_USER")
+    jira_api_token = os.getenv("JIRA_API_TOKEN")
+    jira_project_key = os.getenv("JIRA_PROJECT_KEY", "SUP")
+
+    if jira_server and jira_user and jira_api_token and jira_project_key:
+        priority_name = {
+            "urgent": "High",
+            "medium": "Medium",
+            "low": "Low",
+        }.get(priority, "Medium")
+
+        labels = [label for label in (intent, order_id) if label]
+
+        try:
+            client = JIRA(server=jira_server, basic_auth=(jira_user, jira_api_token))
+            issue = client.create_issue(
+                project=jira_project_key,
+                summary=summary,
+                description=description,
+                issuetype={"name": "Task"},
+                priority={"name": priority_name},
+                labels=labels,
+            )
+        except Exception as exc:
+            raise RuntimeError(f"Failed to create Jira ticket: {exc}") from exc
+
+        return {
+            "jira_ticket_id": issue.key,
+            "summary": summary,
+            "description": description,
+            "priority": priority,
+            "order_id": order_id,
+            "intent": intent,
+            "jira_url": f"{jira_server.rstrip('/')}/browse/{issue.key}",
+        }
+
     ticket_id = f"SUP-{random.randint(1000, 9999)}"
     return {
         "jira_ticket_id": ticket_id,
@@ -67,10 +96,24 @@ def create_jira_ticket(
 @tool
 def notify_slack(channel: str, message: str, jira_ticket_id: str, priority: str) -> dict:
     """Send a Slack notification about a newly created support ticket."""
-    # MOCK: replace this block with a real slack_sdk call, e.g.:
-    #   from slack_sdk import WebClient
-    #   client = WebClient(token=SLACK_BOT_TOKEN)
-    #   client.chat_postMessage(channel=channel, text=message)
+    slack_bot_token = os.getenv("SLACK_BOT_TOKEN")
+
+    if slack_bot_token:
+        try:
+            client = WebClient(token=slack_bot_token)
+            response = client.chat_postMessage(channel=channel, text=message)
+        except SlackApiError as exc:
+            error = exc.response.get("error", "unknown_error")
+            raise RuntimeError(f"Failed to send Slack notification: {error}") from exc
+
+        print(f"[Tool] Slack sent -> #{channel} | {jira_ticket_id} ({priority})")
+        return {
+            "channel": channel,
+            "jira_ticket_id": jira_ticket_id,
+            "sent": True,
+            "slack_ts": response.get("ts"),
+        }
+
     print(f"[Tool] Slack -> #{channel} | {jira_ticket_id} ({priority}): {message}")
     return {"channel": channel, "jira_ticket_id": jira_ticket_id, "sent": True}
 

@@ -1,6 +1,7 @@
 """Node functions for each step of the ticket triage graph."""
 
 import json
+import os
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -98,7 +99,9 @@ def tools_node(state: TicketState) -> dict:
     jira_ticket_id = jira_result["jira_ticket_id"]
     print(f"[Tool] create_jira_ticket -> {jira_ticket_id}")
 
-    channel = "support-urgent" if priority == "urgent" else "support-general"
+    channel_env = "SLACK_URGENT_CHANNEL" if priority == "urgent" else "SLACK_GENERAL_CHANNEL"
+    default_channel = "support-urgent" if priority == "urgent" else "support-general"
+    channel = os.getenv(channel_env, default_channel)
     slack_message = f"New ticket {jira_ticket_id} ({priority}) for {ticket['ticket_id']}: {summary}"
     slack_result = notify_slack.invoke(
         {
