@@ -3,6 +3,7 @@
 import os
 import random
 
+from jira.exceptions import JIRAError
 from langchain_core.tools import tool
 from jira import JIRA
 from slack_sdk import WebClient
@@ -69,6 +70,15 @@ def create_jira_ticket(
                 priority={"name": priority_name},
                 labels=labels,
             )
+        except JIRAError as exc:
+            if exc.status_code == 404 and "No project could be found" in str(exc):
+                raise RuntimeError(
+                    "Failed to create Jira ticket: JIRA_PROJECT_KEY="
+                    f"{jira_project_key!r} is not visible to this Jira account. "
+                    "Set JIRA_PROJECT_KEY to an existing project key and make sure "
+                    "JIRA_USER has Browse Projects and Create Issues permission."
+                ) from exc
+            raise RuntimeError(f"Failed to create Jira ticket: {exc}") from exc
         except Exception as exc:
             raise RuntimeError(f"Failed to create Jira ticket: {exc}") from exc
 
