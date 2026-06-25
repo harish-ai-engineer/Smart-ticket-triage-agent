@@ -5,7 +5,7 @@ import os
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from config import get_classifier_llm, get_langfuse_handler, get_llm
+from config import get_classifier_llm, get_llm
 from state import TicketState
 from tools import create_jira_ticket, fetch_order_data, notify_slack
 
@@ -42,7 +42,6 @@ def llm_classifier(state: TicketState) -> dict:
     """Call the LLM to classify intent, priority, and extract the order ID."""
     ticket = state["current_ticket"]
     llm = get_classifier_llm()
-    handler = get_langfuse_handler()
 
     messages = [
         SystemMessage(content=CLASSIFIER_SYSTEM_PROMPT),
@@ -56,7 +55,7 @@ def llm_classifier(state: TicketState) -> dict:
         ),
     ]
 
-    response = llm.invoke(messages, config={"callbacks": [handler]})
+    response = llm.invoke(messages)
 
     try:
         parsed = json.loads(response.content)
@@ -123,7 +122,6 @@ def llm_responder(state: TicketState) -> dict:
     """Call the LLM to draft a customer reply and decide the routing action."""
     ticket = state["current_ticket"]
     llm = get_llm()
-    handler = get_langfuse_handler()
 
     messages = [
         SystemMessage(content=RESPONDER_SYSTEM_PROMPT),
@@ -140,7 +138,7 @@ def llm_responder(state: TicketState) -> dict:
         ),
     ]
 
-    response = llm.invoke(messages, config={"callbacks": [handler]})
+    response = llm.invoke(messages)
 
     try:
         parsed = json.loads(response.content)

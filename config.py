@@ -27,9 +27,10 @@ def get_classifier_llm() -> ChatOpenAI:
 
 
 def get_langfuse_handler() -> CallbackHandler:
-    """Build the Langfuse/AgentGuard callback handler used to trace every LLM call."""
+    """Build the Langfuse/AgentGuard callback handler for the whole agent run."""
     return CallbackHandler(
         public_key=LANGFUSE_PUBLIC_KEY,
         secret_key=LANGFUSE_SECRET_KEY,
         host=LANGFUSE_HOST,
+        trace_name="ticket triage agent",
     )
