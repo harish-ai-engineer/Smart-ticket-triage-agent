@@ -7,7 +7,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from config import get_classifier_llm, get_llm
 from state import TicketState
-from tools import create_jira_ticket, fetch_order_data, notify_slack
+from tools import _create_local_ticket, create_jira_ticket, fetch_order_data, notify_slack
 
 ESCALATION_TOTAL_THRESHOLD = 15000
 
@@ -86,25 +86,30 @@ def tools_node(state: TicketState) -> dict:
         f"Message: {ticket['message']}\n"
         f"Order data: {order_data}"
     )
-    jira_result = create_jira_ticket.invoke(
-        {
-            "summary": summary,
-            "description": description,
-            "priority": priority,
-            "order_id": order_id,
-            "intent": intent,
-        }
-    )
+    ticket_payload = {
+        "summary": summary,
+        "description": description,
+        "priority": priority,
+        "order_id": order_id,
+        "intent": intent,
+    }
+    try:
+        jira_result = create_jira_ticket.invoke(ticket_payload)
+    except Exception as exc:
+        print(f"[Tool] create_jira_ticket failed -> {exc}")
+        jira_result = _create_local_ticket(**ticket_payload)
     jira_ticket_id = jira_result["jira_ticket_id"]
     print(f"[Tool] create_jira_ticket -> {jira_ticket_id}")
 
     channel_env = "SLACK_URGENT_CHANNEL" if priority == "urgent" else "SLACK_GENERAL_CHANNEL"
     default_channel = "support-urgent" if priority == "urgent" else "support-general"
     channel = os.getenv(channel_env, default_channel)
-    slack_display_id = (
-        f"Support Case {ticket['ticket_id']}" if jira_ticket_id.startswith("LOCAL-") else jira_ticket_id
+    slack_display_id = ticket["ticket_id"] if jira_ticket_id.startswith("LOCAL-") else jira_ticket_id
+    slack_message = (
+        f"New customer support case {slack_display_id} | "
+        f"{ticket['customer_name']} | {priority.upper()} {intent} | "
+        f"Order {order_id or 'not provided'} | {ticket['subject']}"
     )
-    slack_message = f"New support case {slack_display_id} ({priority}): {summary}"
     slack_result = notify_slack.invoke(
         {
             "channel": channel,

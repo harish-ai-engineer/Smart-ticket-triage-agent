@@ -36,7 +36,10 @@ def _create_local_ticket(
     tickets_path = Path("generated_issues.jsonl")
     ticket_number = 1
     if tickets_path.exists():
-        ticket_number = sum(1 for _ in tickets_path.open(encoding="utf-8")) + 1
+        try:
+            ticket_number = sum(1 for _ in tickets_path.open(encoding="utf-8")) + 1
+        except OSError:
+            ticket_number = int(datetime.now(timezone.utc).timestamp())
 
     ticket_id = f"LOCAL-{ticket_number:04d}"
     ticket = {
@@ -51,8 +54,11 @@ def _create_local_ticket(
         "created_at": datetime.now(timezone.utc).isoformat(),
         "source": "local_fallback",
     }
-    with tickets_path.open("a", encoding="utf-8") as file:
-        file.write(json.dumps(ticket, separators=(",", ":")) + "\n")
+    try:
+        with tickets_path.open("a", encoding="utf-8") as file:
+            file.write(json.dumps(ticket, separators=(",", ":")) + "\n")
+    except OSError as exc:
+        print(f"[Tool] local ticket persistence skipped -> {exc}")
     return ticket
 
 
@@ -102,25 +108,21 @@ def create_jira_ticket(
             )
         except JIRAError as exc:
             if exc.status_code == 401:
-                print(
+                raise RuntimeError(
                     "Failed to create Jira ticket: Jira rejected JIRA_USER/JIRA_API_TOKEN. "
                     "Use your Atlassian account email as JIRA_USER and a Jira API token "
                     "as JIRA_API_TOKEN."
-                )
-                return _create_local_ticket(summary, description, priority, order_id, intent)
+                ) from exc
             if exc.status_code == 404 and "No project could be found" in str(exc):
-                print(
+                raise RuntimeError(
                     "Failed to create Jira ticket: JIRA_PROJECT_KEY="
                     f"{jira_project_key!r} is not visible to this Jira account. "
                     "Set JIRA_PROJECT_KEY to an existing project key and make sure "
                     "JIRA_USER has Browse Projects and Create Issues permission."
-                )
-                return _create_local_ticket(summary, description, priority, order_id, intent)
-            print(f"Failed to create Jira ticket: {exc}")
-            return _create_local_ticket(summary, description, priority, order_id, intent)
+                ) from exc
+            raise RuntimeError(f"Failed to create Jira ticket: {exc}") from exc
         except Exception as exc:
-            print(f"Failed to create Jira ticket: {exc}")
-            return _create_local_ticket(summary, description, priority, order_id, intent)
+            raise RuntimeError(f"Failed to create Jira ticket: {exc}") from exc
 
         return {
             "jira_ticket_id": issue.key,
