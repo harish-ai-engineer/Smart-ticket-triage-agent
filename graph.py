@@ -46,4 +46,4 @@ def build_graph():
     graph.add_edge("human_escalation", END)
 
     checkpointer = MemorySaver()
-    return graph.compile(checkpointer=checkpointer, interrupt_before=["human_escalation"])
+    return graph.compile(checkpointer=checkpointer)

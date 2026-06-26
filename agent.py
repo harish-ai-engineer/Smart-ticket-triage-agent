@@ -8,7 +8,7 @@ from state import TicketState
 
 
 def run_agent(tickets: list[dict]) -> list[dict]:
-    """Run the triage graph over a queue of tickets, resuming past any escalations."""
+    """Run the triage graph over a queue of tickets."""
     app = build_graph()
     handler = get_langfuse_handler()
 
@@ -31,13 +31,6 @@ def run_agent(tickets: list[dict]) -> list[dict]:
     }
 
     app.invoke(initial_state, config=invoke_config)
-
-    # Resume past any interrupt_before=["human_escalation"] pauses until the graph
-    # reaches END. In a real deployment, this resume call would be triggered by a
-    # human agent's action (e.g. clicking "approve" in a review UI) rather than a loop.
-    while app.get_state(invoke_config).next:
-        print("[Router] Resuming graph after human escalation review")
-        app.invoke(None, config=invoke_config)
 
     final_state = app.get_state(invoke_config).values
     processed = final_state.get("processed", [])
