@@ -1,7 +1,9 @@
 """Tool definitions used by the triage agent: order lookup, Jira ticketing, Slack alerts."""
 
+import json
 import os
-import random
+from datetime import datetime, timezone
+from pathlib import Path
 
 from jira.exceptions import JIRAError
 from langchain_core.tools import tool
@@ -25,6 +27,33 @@ _MOCK_ORDERS: dict[str, dict] = {
         "delivery_date": "2026-06-18",
     },
 }
+
+
+def _create_local_ticket(
+    summary: str, description: str, priority: str, order_id: str, intent: str
+) -> dict:
+    """Persist a support ticket locally when Jira credentials are missing or blocked."""
+    tickets_path = Path("generated_issues.jsonl")
+    ticket_number = 1
+    if tickets_path.exists():
+        ticket_number = sum(1 for _ in tickets_path.open(encoding="utf-8")) + 1
+
+    ticket_id = f"LOCAL-{ticket_number:04d}"
+    ticket = {
+        "jira_ticket_id": ticket_id,
+        "issue_id": ticket_id,
+        "issue_number": ticket_number,
+        "summary": summary,
+        "description": description,
+        "priority": priority,
+        "order_id": order_id,
+        "intent": intent,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "source": "local_fallback",
+    }
+    with tickets_path.open("a", encoding="utf-8") as file:
+        file.write(json.dumps(ticket, separators=(",", ":")) + "\n")
+    return ticket
 
 
 @tool
@@ -73,21 +102,25 @@ def create_jira_ticket(
             )
         except JIRAError as exc:
             if exc.status_code == 401:
-                raise RuntimeError(
+                print(
                     "Failed to create Jira ticket: Jira rejected JIRA_USER/JIRA_API_TOKEN. "
                     "Use your Atlassian account email as JIRA_USER and a Jira API token "
                     "as JIRA_API_TOKEN."
-                ) from exc
+                )
+                return _create_local_ticket(summary, description, priority, order_id, intent)
             if exc.status_code == 404 and "No project could be found" in str(exc):
-                raise RuntimeError(
+                print(
                     "Failed to create Jira ticket: JIRA_PROJECT_KEY="
                     f"{jira_project_key!r} is not visible to this Jira account. "
                     "Set JIRA_PROJECT_KEY to an existing project key and make sure "
                     "JIRA_USER has Browse Projects and Create Issues permission."
-                ) from exc
-            raise RuntimeError(f"Failed to create Jira ticket: {exc}") from exc
+                )
+                return _create_local_ticket(summary, description, priority, order_id, intent)
+            print(f"Failed to create Jira ticket: {exc}")
+            return _create_local_ticket(summary, description, priority, order_id, intent)
         except Exception as exc:
-            raise RuntimeError(f"Failed to create Jira ticket: {exc}") from exc
+            print(f"Failed to create Jira ticket: {exc}")
+            return _create_local_ticket(summary, description, priority, order_id, intent)
 
         return {
             "jira_ticket_id": issue.key,
@@ -99,15 +132,7 @@ def create_jira_ticket(
             "jira_url": f"{jira_server.rstrip('/')}/browse/{issue.key}",
         }
 
-    ticket_id = f"SUP-{random.randint(1000, 9999)}"
-    return {
-        "jira_ticket_id": ticket_id,
-        "summary": summary,
-        "description": description,
-        "priority": priority,
-        "order_id": order_id,
-        "intent": intent,
-    }
+    return _create_local_ticket(summary, description, priority, order_id, intent)
 
 
 @tool
@@ -115,13 +140,21 @@ def notify_slack(channel: str, message: str, jira_ticket_id: str, priority: str)
     """Send a Slack notification about a newly created support ticket."""
     slack_bot_token = os.getenv("SLACK_BOT_TOKEN")
 
-    if slack_bot_token:
+    slack_enabled = os.getenv("ENABLE_SLACK_NOTIFICATIONS", "true").lower() not in ("false", "0", "no")
+
+    if slack_bot_token and slack_enabled:
         try:
             client = WebClient(token=slack_bot_token)
             response = client.chat_postMessage(channel=channel, text=message)
         except SlackApiError as exc:
             error = exc.response.get("error", "unknown_error")
-            raise RuntimeError(f"Failed to send Slack notification: {error}") from exc
+            print(f"Failed to send Slack notification: {error}")
+            return {
+                "channel": channel,
+                "jira_ticket_id": jira_ticket_id,
+                "sent": False,
+                "error": error,
+            }
 
         print(f"[Tool] Slack sent -> #{channel} | {jira_ticket_id} ({priority})")
         return {

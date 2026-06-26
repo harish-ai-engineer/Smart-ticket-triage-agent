@@ -101,7 +101,10 @@ def tools_node(state: TicketState) -> dict:
     channel_env = "SLACK_URGENT_CHANNEL" if priority == "urgent" else "SLACK_GENERAL_CHANNEL"
     default_channel = "support-urgent" if priority == "urgent" else "support-general"
     channel = os.getenv(channel_env, default_channel)
-    slack_message = f"New ticket {jira_ticket_id} ({priority}) for {ticket['ticket_id']}: {summary}"
+    slack_display_id = (
+        f"Support Case {ticket['ticket_id']}" if jira_ticket_id.startswith("LOCAL-") else jira_ticket_id
+    )
+    slack_message = f"New support case {slack_display_id} ({priority}): {summary}"
     slack_result = notify_slack.invoke(
         {
             "channel": channel,
