@@ -1,4 +1,7 @@
 .venv/
 .env
+generated_issues.json
+generated_issues.jsonl
+*.log
 __pycache__/
 *.pyc

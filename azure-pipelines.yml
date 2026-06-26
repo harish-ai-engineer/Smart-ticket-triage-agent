@@ -1,0 +1,70 @@
+trigger:
+  branches:
+    include:
+      - main
+      - master
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  pythonVersion: '3.10'
+  azureServiceConnection: 'YOUR_AZURE_SERVICE_CONNECTION'
+  webAppName: 'YOUR_AZURE_WEB_APP_NAME'
+  artifactName: 'agentflow-app'
+
+stages:
+  - stage: Build
+    displayName: Build package
+    jobs:
+      - job: Build
+        displayName: Build Python app
+        steps:
+          - task: UsePythonVersion@0
+            displayName: Use Python $(pythonVersion)
+            inputs:
+              versionSpec: '$(pythonVersion)'
+
+          - script: |
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+              python -m py_compile agent.py config.py graph.py nodes.py state.py tools.py web_app.py
+            displayName: Install dependencies and compile
+
+          - task: ArchiveFiles@2
+            displayName: Create deployment zip
+            inputs:
+              rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+              replaceExistingArchive: true
+
+          - publish: '$(Build.ArtifactStagingDirectory)/app.zip'
+            displayName: Publish artifact
+            artifact: '$(artifactName)'
+
+  - stage: Deploy
+    displayName: Deploy to Azure App Service
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy web app
+        environment: production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: '$(artifactName)'
+
+                - task: AzureWebApp@1
+                  displayName: Deploy zip to App Service
+                  inputs:
+                    azureSubscription: '$(azureServiceConnection)'
+                    appType: webAppLinux
+                    appName: '$(webAppName)'
+                    package: '$(Pipeline.Workspace)/$(artifactName)/app.zip'
+                    runtimeStack: 'PYTHON|3.10'
+                    startUpCommand: 'python web_app.py'

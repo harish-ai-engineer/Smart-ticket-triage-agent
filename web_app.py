@@ -20,106 +20,201 @@ def _html() -> str:
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ticket Triage Agent</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M18 18h28v6H18zM18 30h28v6H18zM18 42h18v6H18z' fill='white'/%3E%3Ccircle cx='47' cy='45' r='7' fill='%23f59e0b'/%3E%3C/svg%3E" />
   <style>
     :root {
       color-scheme: light;
-      --bg: #f6f7f9;
+      --bg: #f5f7fb;
       --panel: #ffffff;
-      --text: #1f2933;
-      --muted: #637083;
-      --line: #d9dee7;
-      --brand: #1769e0;
-      --brand-dark: #0f55b8;
+      --text: #111827;
+      --muted: #667085;
+      --line: #d7deea;
+      --soft-line: #edf1f7;
+      --brand: #0a84ff;
+      --brand-dark: #0067d8;
+      --accent: #2563eb;
       --ok: #0f7b4f;
       --warn: #9a5a00;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
       background: var(--bg);
       color: var(--text);
     }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0 0 auto;
+      height: 280px;
+      background:
+        radial-gradient(circle at 16% 0%, rgba(10, 132, 255, .20), transparent 34%),
+        linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
+      border-bottom: 1px solid #e6edf7;
+      z-index: -1;
+    }
     .shell {
-      max-width: 1120px;
+      max-width: 1180px;
       margin: 0 auto;
-      padding: 32px 20px;
+      height: 100vh;
+      padding: 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
     header {
       display: flex;
       justify-content: space-between;
       gap: 20px;
-      align-items: flex-end;
-      margin-bottom: 24px;
+      align-items: center;
+      color: var(--text);
+      flex: 0 0 auto;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: #0f766e;
+      border: 1px solid rgba(15, 118, 110, .18);
+      box-shadow: 0 16px 34px rgba(15, 118, 110, .20);
+    }
+    .brand-mark svg {
+      width: 28px;
+      height: 28px;
+      display: block;
     }
     h1 {
-      margin: 0 0 6px;
+      margin: 0 0 3px;
       font-size: 28px;
       line-height: 1.2;
       letter-spacing: 0;
+      font-weight: 760;
     }
     .subtitle {
       margin: 0;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1.45;
     }
     .status {
-      border: 1px solid var(--line);
-      background: var(--panel);
-      padding: 10px 12px;
+      border: 1px solid rgba(10, 132, 255, .18);
+      background: rgba(255, 255, 255, .78);
+      color: #0758b8;
+      border-radius: 999px;
+      padding: 11px 14px;
       min-width: 220px;
       font-size: 13px;
+      font-weight: 650;
+      text-align: center;
+      box-shadow: 0 18px 36px rgba(15, 23, 42, .07);
+      backdrop-filter: blur(16px);
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      flex: 0 0 auto;
+    }
+    .metric {
+      background: rgba(255, 255, 255, .82);
+      border: 1px solid rgba(215, 222, 234, .8);
+      border-radius: 13px;
+      padding: 9px 14px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, .06);
+      backdrop-filter: blur(18px);
+    }
+    .metric .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 680;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .metric .value {
+      margin-top: 5px;
+      font-size: 16px;
+      font-weight: 720;
     }
     .grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
-      gap: 20px;
+      grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
+      gap: 16px;
       align-items: start;
+      min-height: 0;
+      flex: 1 1 auto;
     }
     form, .result {
       background: var(--panel);
       border: 1px solid var(--line);
-      padding: 18px;
-      border-radius: 6px;
+      padding: 16px;
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, .08);
+      min-height: 0;
+    }
+    .panel-title {
+      margin: 0 0 14px;
+      font-size: 18px;
+      letter-spacing: 0;
+      font-weight: 720;
     }
     label {
       display: block;
-      font-size: 13px;
-      font-weight: 650;
-      margin: 0 0 6px;
+      font-size: 12px;
+      font-weight: 620;
+      margin: 0 0 5px;
     }
     input, textarea {
       width: 100%;
       border: 1px solid #c9d1dc;
-      border-radius: 4px;
-      padding: 10px 11px;
+      border-radius: 12px;
+      padding: 8px 12px;
       font: inherit;
       font-size: 15px;
-      background: #fff;
+      font-weight: 400;
+      background: #fbfcff;
       color: var(--text);
     }
+    input:focus, textarea:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px rgba(10, 132, 255, .14);
+      outline: 0;
+    }
     textarea {
-      min-height: 190px;
+      min-height: 88px;
+      max-height: 20vh;
       resize: vertical;
     }
     .field {
-      margin-bottom: 14px;
+      margin-bottom: 8px;
     }
     .actions {
       display: flex;
       justify-content: flex-end;
       gap: 10px;
-      padding-top: 4px;
+      padding-top: 0;
     }
     button {
       border: 0;
-      border-radius: 4px;
+      border-radius: 12px;
       background: var(--brand);
       color: #fff;
-      font-weight: 700;
-      padding: 10px 16px;
+      font-weight: 650;
+      padding: 9px 18px;
       cursor: pointer;
-      min-height: 40px;
+      min-height: 38px;
+      box-shadow: 0 16px 26px rgba(10, 132, 255, .24);
     }
     button:hover { background: var(--brand-dark); }
     button:disabled {
@@ -127,9 +222,26 @@ def _html() -> str:
       cursor: not-allowed;
     }
     .result h2 {
-      margin: 0 0 14px;
+      margin: 0;
       font-size: 18px;
+      font-weight: 720;
       letter-spacing: 0;
+    }
+    .result-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .result-chip {
+      border: 1px solid var(--soft-line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      color: #0758b8;
+      font-size: 12px;
+      font-weight: 650;
+      background: #eef6ff;
     }
     .empty {
       color: var(--muted);
@@ -142,8 +254,8 @@ def _html() -> str:
       grid-template-columns: 116px minmax(0, 1fr);
       gap: 8px 10px;
       font-size: 14px;
-      padding: 12px 0;
-      border-top: 1px solid var(--line);
+      padding: 9px 0;
+      border-top: 1px solid var(--soft-line);
     }
     .kv:first-of-type { border-top: 0; padding-top: 0; }
     .k { color: var(--muted); }
@@ -163,6 +275,11 @@ def _html() -> str:
     .reply {
       white-space: pre-wrap;
       line-height: 1.45;
+      color: #334155;
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
     .error {
       color: #b42318;
@@ -174,8 +291,11 @@ def _html() -> str:
       margin-top: 12px;
     }
     @media (max-width: 820px) {
+      body { overflow: auto; }
+      .shell { height: auto; min-height: 100vh; }
       header { display: block; }
       .status { margin-top: 14px; }
+      .summary { grid-template-columns: 1fr; }
       .grid { grid-template-columns: 1fr; }
       .shell { padding: 22px 14px; }
     }
@@ -184,14 +304,37 @@ def _html() -> str:
 <body>
   <main class="shell">
     <header>
-      <div>
-        <h1>Ticket Triage Agent</h1>
-        <p class="subtitle">Submit a customer message and route it through classification, ticketing, Slack, and escalation.</p>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64" role="img">
+            <path d="M18 18h28v6H18zM18 30h28v6H18zM18 42h18v6H18z" fill="#fff"/>
+            <circle cx="47" cy="45" r="7" fill="#f59e0b"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Ticket Triage Agent</h1>
+          <p class="subtitle">Submit a customer message and route it through classification, ticketing, Slack, and escalation.</p>
+        </div>
       </div>
       <div class="status" id="status">Ready</div>
     </header>
+    <section class="summary" aria-label="Agent workflow">
+      <div class="metric">
+        <div class="label">Classify</div>
+        <div class="value">Intent and priority</div>
+      </div>
+      <div class="metric">
+        <div class="label">Create case</div>
+        <div class="value">Jira or local fallback</div>
+      </div>
+      <div class="metric">
+        <div class="label">Notify</div>
+        <div class="value">Slack escalation</div>
+      </div>
+    </section>
     <div class="grid">
       <form id="ticketForm">
+        <h2 class="panel-title">New Support Ticket</h2>
         <div class="field">
           <label for="customerName">Customer name</label>
           <input id="customerName" name="customerName" value="Nisha Rao" required />
@@ -209,7 +352,10 @@ def _html() -> str:
         </div>
       </form>
       <section class="result">
-        <h2>Result</h2>
+        <div class="result-head">
+          <h2>Result</h2>
+          <span class="result-chip">Live run</span>
+        </div>
         <div id="result"><p class="empty">No ticket submitted yet.</p></div>
       </section>
     </div>
