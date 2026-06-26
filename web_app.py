@@ -151,7 +151,7 @@ def _html() -> str:
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
       gap: 16px;
-      align-items: start;
+      align-items: stretch;
       min-height: 0;
       flex: 1 1 auto;
     }
@@ -162,6 +162,9 @@ def _html() -> str:
       border-radius: 18px;
       box-shadow: 0 24px 60px rgba(15, 23, 42, .08);
       min-height: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
     }
     .panel-title {
       margin: 0 0 14px;
@@ -192,18 +195,29 @@ def _html() -> str:
       outline: 0;
     }
     textarea {
-      min-height: 88px;
-      max-height: 20vh;
-      resize: vertical;
+      min-height: 0;
+      height: 100%;
+      resize: none;
     }
     .field {
       margin-bottom: 8px;
+    }
+    .message-field {
+      display: flex;
+      flex: 1 1 auto;
+      min-height: 0;
+      flex-direction: column;
+    }
+    .message-field textarea {
+      flex: 1 1 auto;
     }
     .actions {
       display: flex;
       justify-content: flex-end;
       gap: 10px;
       padding-top: 0;
+      margin-top: 10px;
+      flex: 0 0 auto;
     }
     button {
       border: 0;
@@ -233,6 +247,7 @@ def _html() -> str:
       justify-content: space-between;
       gap: 12px;
       margin-bottom: 10px;
+      flex: 0 0 auto;
     }
     .result-chip {
       border: 1px solid var(--soft-line);
@@ -248,6 +263,11 @@ def _html() -> str:
       font-size: 14px;
       line-height: 1.5;
       margin: 0;
+    }
+    #result {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
     }
     .kv {
       display: grid;
@@ -343,7 +363,7 @@ def _html() -> str:
           <label for="subject">Subject</label>
           <input id="subject" name="subject" value="Missing item in my order" required />
         </div>
-        <div class="field">
+        <div class="field message-field">
           <label for="message">Message</label>
           <textarea id="message" name="message" required>Hi, I received my package today but one item is missing from the box. Order is ORD-84712. Please help urgently, this was a gift.</textarea>
         </div>
